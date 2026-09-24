@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reproductive Systems · 3D Study Lab</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;
+    background:radial-gradient(1200px 800px at 50% 32%, #2c3644 0%, #14181f 100%);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;user-select:none}
+  #app{position:fixed;inset:0}
+  #app canvas{display:block}
+  #topbar{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;
+    justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;
+    padding:14px 18px;pointer-events:none}
+  #title h1{font-size:16px;font-weight:700;color:#eef3f8;letter-spacing:.3px}
+  #title p{font-size:11px;color:#9db0c3;margin-top:3px}
+  #btns{display:flex;gap:7px;flex-wrap:wrap;pointer-events:auto}
+  #btns button{font-family:inherit;font-size:12px;color:#dbe4ee;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);
+    border-radius:999px;padding:7px 12px;cursor:pointer;transition:all .15s;
+    backdrop-filter:blur(6px)}
+  #btns button:hover{border-color:#5aa2ff;color:#fff}
+  #btns button.on{background:#2f81f7;border-color:#2f81f7;color:#fff}
+
+  #panel{position:fixed;left:16px;bottom:16px;z-index:11;
+    width:min(360px,calc(100vw - 32px));
+    background:rgba(17,23,31,.94);border:1px solid rgba(255,255,255,.14);
+    border-left:3px solid #2f81f7;border-radius:12px;padding:15px 17px;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);backdrop-filter:blur(6px)}
+  #panel.fem{border-left-color:#e26d9a}
+  .p-name{font-size:16px;font-weight:700;color:#eef3f8}
+  .p-sub{font-size:11px;color:#8fa0b5;letter-spacing:.04em;margin:2px 0 8px}
+  .p-fn{font-size:12.5px;line-height:1.65;color:#c9d3df}
+  .p-fn b{color:#7fb4ff}
+  #panel.fem .p-fn b{color:#f09ac0}
+  .p-nav{display:flex;justify-content:space-between;align-items:center;gap:6px;
+    margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.12)}
+  .p-nav span{font-size:11px;color:#8fa0b5;white-space:nowrap}
+  .p-nav button{font-size:11px;padding:5px 9px}
+
+  .q-head{display:flex;justify-content:space-between;font-size:10.5px;
+    letter-spacing:.1em;color:#8fa0b5;margin-bottom:8px;text-transform:uppercase}
+  .q-big{font-size:15px;color:#eef3f8;line-height:1.5}
+  .q-big b{color:#7fb4ff}
+  .q-hint{font-size:12px;color:#d9c58a;margin-top:5px}
+  .q-fb{font-size:13px;margin-top:10px;min-height:18px;line-height:1.5}
+  .q-fb.ok{color:#4cd98a}.q-fb.bad{color:#ff8577}
+  .q-dots{display:flex;gap:4px;margin-top:10px;flex-wrap:wrap}
+  .q-dots i{display:block;width:16px;height:5px;border-radius:2px;background:#39455a}
+  .q-dots i.ok{background:#2ecc71}
+  .q-dots i.bad{background:#e74c3c}
+  .q-dots i.cur{background:#f1c40f;box-shadow:0 0 6px rgba(241,196,15,.7)}
+  .q-opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}
+  .q-opts button,.q-actions button,.p-nav button{font-family:inherit;font-size:12px;
+    color:#dbe4ee;background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.22);border-radius:9px;padding:8px 10px;
+    cursor:pointer;transition:all .15s;text-align:left;line-height:1.45}
+  .q-opts button:hover,.q-actions button:hover,.p-nav button:hover{border-color:#5aa2ff;color:#fff}
+  .q-opts button b{color:#eef3f8}
+  .q-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+  .q-actions button{text-align:center}
+  .chip{display:inline-block;margin:4px 4px 0 0;padding:4px 10px;border-radius:999px;
+    border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);
+    color:#dbe4ee;font-size:12px;cursor:pointer;font-family:inherit}
+  .chip:hover{border-color:#5aa2ff;color:#fff}
+
+  #cutbar,#expbar{position:fixed;left:50%;transform:translateX(-50%);z-index:10;
+    background:rgba(17,23,31,.94);border:1px solid rgba(255,255,255,.14);
+    border-radius:999px;padding:8px 16px;display:none;gap:10px;align-items:center;
+    font-size:12px;color:#c9d3df;backdrop-filter:blur(6px)}
+  #cutbar{bottom:62px}
+  #expbar{bottom:16px}
+  #cutbar.on,#expbar.on{display:flex}
+  #cutbar input,#expbar input{accent-color:#2f81f7;width:150px}
+  #cutbar button,#expbar button{font-family:inherit;background:none;border:none;
+    color:#8fa0b5;cursor:pointer;font-size:14px}
+  #hint{position:fixed;right:16px;bottom:16px;z-index:9;font-size:10.5px;
+    color:#6d7c8e;text-align:right;line-height:1.6}
+
+  .lbl{background:rgba(255,255,255,.96);border:1px solid #c9d4e0;border-radius:8px;
+    padding:3px 9px;white-space:nowrap;text-align:center;cursor:pointer;
+    box-shadow:0 2px 10px rgba(0,0,0,.35);transition:border-color .15s;font-family:inherit}
+  .lbl:hover{border-color:#2f81f7}
+  .lbl b{display:block;font-size:12.5px;font-weight:600;color:#1c2733}
+  .lbl span{display:block;font-size:9.5px;color:#7a8aa0;letter-spacing:.04em}
+  .marker span{display:inline-block;font-size:26px;
+    animation:bob 1.1s ease-in-out infinite;filter:drop-shadow(0 3px 8px rgba(0,0,0,.7))}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+
+  #menu{position:fixed;inset:0;z-index:30;display:flex;align-items:center;
+    justify-content:center;background:rgba(10,14,20,.55);backdrop-filter:blur(9px);
+    padding:20px}
+  #menu.hidden{display:none}
+  .menu-box{max-width:760px;width:100%;text-align:center}
+  .menu-box h1{font-size:26px;color:#eef3f8;letter-spacing:.4px}
+  .menu-box>p{font-size:13px;color:#9db0c3;margin:10px 0 22px}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:640px){.cards{grid-template-columns:1fr}}
+  .card{display:flex;gap:14px;align-items:center;text-align:left;padding:22px 20px;
+    border-radius:16px;cursor:pointer;font-family:inherit;
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);
+    color:#dbe4ee;transition:all .2s}
+  .card:hover{transform:translateY(-3px);background:rgba(255,255,255,.1)}
+  .card.male:hover{border-color:#5aa2ff}
+  .card.female:hover{border-color:#e26d9a}
+  .card-ico{font-size:44px;line-height:1;width:56px;flex:none}
+  .card.male .card-ico{color:#6fb1ff}
+  .card.female .card-ico{color:#f08ab5}
+  .card h2{font-size:17px;color:#eef3f8;margin-bottom:4px}
+  .card p{font-size:12.5px;color:#aebccd;margin-bottom:6px}
+  .card span{font-size:11px;color:#7d8c9d}
+  .menu-tip{font-size:11.5px;color:#8a99ab;margin-top:20px;line-height:1.7}
+  #menuClose{margin-top:14px;background:none;border:1px solid rgba(255,255,255,.25);
+    color:#9db0c3;border-radius:999px;padding:6px 16px;cursor:pointer;font-family:inherit}
+  #menuClose:hover{color:#fff;border-color:#5aa2ff}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div id="topbar">
+  <div id="title">
+    <h1>Reproductive Systems · 3D Study Lab</h1>
+    <p id="sysSub">Choose a system to begin</p>
+  </div>
+  <div id="btns">
+    <button id="btnMenu"   title="B">☰ Menu</button>
+    <button id="btnSwap"   title="switch system">⇄ Swap</button>
+    <button id="btnLabels" title="L">Hide Labels</button>
+    <button id="btnXray"   title="X">X-Ray</button>
+    <button id="btnSperm"  title="S">Sperm Path</button>
+    <button id="btnCut"    title="C">Cross-Section</button>
+    <button id="btnSep"    title="E">Separate</button>
+    <button id="btnQuiz"   title="Q">🎯 Quiz</button>
+    <button id="btnSound"  title="M">🔊</button>
+    <button id="btnReset"  title="R">Reset</button>
+  </div>
+</div>
+
+<div id="panel"></div>
+<div id="expbar">
+  <span>Separate</span>
+  <input type="range" id="expSlider" min="0.05" max="1" step="0.01" value="0.6">
+  <span id="expVal">0.60</span>
+  <button id="expOff" title="Turn off">✕</button>
+</div>
+<div id="cutbar">
+  <span>Cut</span>
+  <input type="range" id="cutSlider" min="-1.6" max="1.6" step="0.05" value="0.15">
+  <span id="cutVal">0.15</span>
+  <button id="cutOff" title="Turn off">✕</button>
+</div>
+<div id="hint">1 ♂ · 2 ♀ · B menu · E separate<br>L X S C Q R M keys</div>
+
+<div id="menu">
+  <div class="menu-box">
+    <h1>Reproductive Systems · 3D Study Lab</h1>
+    <p>Pick a category to study — switch anytime with <b>1</b> / <b>2</b></p>
+    <div class="cards">
+      <button class="card male" data-sys="male">
+        <div class="card-ico">♂</div>
+        <div>
+          <h2>Male Reproductive System</h2>
+          <p>13 structures · sperm production &amp; delivery</p>
+          <span>Testis · Epididymis · Vas deferens · Seminal vesicle · Prostate …</span>
+        </div>
+      </button>
+      <button class="card female" data-sys="female">
+        <div class="card-ico">♀</div>
+        <div>
+          <h2>Female Reproductive System</h2>
+          <p>13 structures · egg production &amp; gestation</p>
+          <span>Ovary · Fallopian tube · Uterus · Endometrium · Cervix · Vagina …</span>
+        </div>
+      </button>
+    </div>
+    <p class="menu-tip">Both systems include: labeled 3D models with functions ·
+      scored quiz (name / find / mixed) · X-ray · cross-section ·
+      <b>Separate — pull the organs apart to study each one</b> ·
+      animated sperm / egg routes</p>
+    <button id="menuClose">✕ close</button>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+/* ================= renderer / scene ================= */
+const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.getElementById('app').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+const camera = new THREE.PerspectiveCamera(42, innerWidth/innerHeight, 0.1, 100);
+
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(innerWidth, innerHeight);
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.top = '0';
+labelRenderer.domElement.style.pointerEvents = 'none';
+document.getElementById('app').appendChild(labelRenderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.minDistance = 3; controls.maxDistance = 22;
+controls.autoRotate = true; controls.autoRotateSpeed = 0.5;
+controls.addEventListener('start', ()=> controls.autoRotate = false);
+
+scene.add(new THREE.HemisphereLight(0xcfe0f0, 0x201812, 0.5));
+const key = new THREE.DirectionalLight(0xfff1e0, 2.6);
+key.position.set(6, 9, 7); key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.left=-8; key.shadow.camera.right=8;
+key.shadow.camera.top=9;   key.shadow.camera.bottom=-5;
+key.shadow.camera.near=1;  key.shadow.camera.far=35;
+key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02;
+scene.add(key);
+const rim  = new THREE.DirectionalLight(0xa8c8ff, 1.2); rim.position.set(-7, 5, -8); scene.add(rim);
+const fill = new THREE.DirectionalLight(0xffffff, 0.55); fill.position.set(-5, 1, 8); scene.add(fill);
+
+const ground = new THREE.Mesh(new THREE.CircleGeometry(10, 48),
+  new THREE.ShadowMaterial({opacity:0.35}));
+ground.rotation.x = -Math.PI/2; ground.position.set(0, -2.4, 0.4);
+ground.receiveShadow = true; scene.add(ground);
+
+/* ================= helpers ================= */
+const V3 = (x,y,z)=> new THREE.Vector3(x,y,z);
+const mirror = pts => pts.map(p=>[-p[0], p[1], p[2]]);
+const shuffle = a => { for(let i=a.length-1;i>0;i--){ const j=Math.random()*(i+1)|0;
+  [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const sample = (arr,n) => shuffle([...arr]).slice(0,n);
+
+function mat(color, opts={}){
+  return new THREE.MeshPhysicalMaterial(Object.assign({
+    color, roughness:0.55, metalness:0,
+    clearcoat:0.15, clearcoatRoughness:0.4,
+    sheen:0.25, sheenColor:0xffd9c0, envMapIntensity:0.55
+  }, opts));
+}
+function makeNoise(repeat){
+  const s=256, c=document.createElement('canvas'); c.width=c.height=s;
+  const ctx=c.getContext('2d'), img=ctx.createImageData(s,s);
+  for(let i=0;i<img.data.length;i+=4){
+    const v = 110 + Math.random()*70 | 0;
+    img.data[i]=img.data[i+1]=img.data[i+2]=v; img.data[i+3]=255;
+  }
+  ctx.putImageData(img,0,0);
+  const c2=document.createElement('canvas'); c2.width=c2.height=s;
+  const x2=c2.getContext('2d');
+  x2.filter='blur(1.5px)'; x2.drawImage(c,0,0);
+  const t=new THREE.CanvasTexture(c2);
+  t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(repeat,repeat);
+  return t;
+}
+function makeGlow(rgb1='rgba(170,235,255,.9)', rgb2='rgba(90,190,255,.35)'){
+  const c=document.createElement('canvas'); c.width=c.height=64;
+  const x=c.getContext('2d');
+  const g=x.createRadialGradient(32,32,0,32,32,32);
+  g.addColorStop(0,rgb1); g.addColorStop(.4,rgb2); g.addColorStop(1,'rgba(0,0,0,0)');
+  x.fillStyle=g; x.fillRect(0,0,64,64);
+  return new THREE.CanvasTexture(c);
+}
+function taperedTube(pts, radiusFn, material, tubular=64, radial=16){
+  const curve = new THREE.CatmullRomCurve3(pts.map(p=>V3(...p)));
+  const frames = curve.computeFrenetFrames(tubular, false);
+  const pos=[], nor=[], uvs=[], idx=[];
+  for(let i=0;i<=tubular;i++){
+    const u=i/tubular, P=curve.getPointAt(u);
+    const N=frames.normals[i], B=frames.binormals[i], r=radiusFn(u);
+    for(let j=0;j<=radial;j++){
+      const v=j/radial*Math.PI*2, sin=Math.sin(v), cos=-Math.cos(v);
+      const nx=cos*N.x+sin*B.x, ny=cos*N.y+sin*B.y, nz=cos*N.z+sin*B.z;
+      pos.push(P.x+r*nx, P.y+r*ny, P.z+r*nz);
+      nor.push(nx,ny,nz);
+      uvs.push(j/radial, i/tubular);
+    }
+  }
+  for(let i=1;i<=tubular;i++) for(let j=1;j<=radial;j++){
+    const a=(radial+1)*(i-1)+(j-1), b=(radial+1)*i+(j-1),
+          c=(radial+1)*i+j,       d=(radial+1)*(i-1)+j;
+    idx.push(a,b,d, b,c,d);
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('normal',   new THREE.Float32BufferAttribute(nor,3));
+  g.setAttribute('uv',       new THREE.Float32BufferAttribute(uvs,2));
+  g.setIndex(idx);
+  return new THREE.Mesh(g, material);
+}
+function organic(geo, amp, freq){
+  if(amp<=0){ geo.computeVertexNormals(); return geo; }
+  const p=geo.attributes.position;
+  for(let i=0;i<p.count;i++){
+    const x=p.getX(i), y=p.getY(i), z=p.getZ(i);
+    const d=1+amp*(Math.sin(x*freq+1.3)+Math.sin(y*freq*1.7+2.1)+Math.sin(z*freq*1.3+4.2));
+    p.setXYZ(i, x*d, y*d, z*d);
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+function blob(pos, r, material, scale, amp=0.015, freq=3){
+  const m=new THREE.Mesh(organic(new THREE.SphereGeometry(r,48,32), amp, freq), material);
+  m.position.set(...pos); if(scale) m.scale.set(...scale);
+  return m;
+}
+function cap(pt, r, m){
+  const s=new THREE.Mesh(new THREE.SphereGeometry(r,20,14), m);
+  s.position.set(...pt); return s;
+}
+function ribbon(ptsA, ptsB, material, segs=20){
+  const cA=new THREE.CatmullRomCurve3(ptsA.map(p=>V3(...p)));
+  const cB=new THREE.CatmullRomCurve3(ptsB.map(p=>V3(...p)));
+  const pos=[], uv=[], idx=[];
+  for(let i=0;i<=segs;i++){
+    const u=i/segs, pa=cA.getPointAt(u), pb=cB.getPointAt(u);
+    pos.push(pa.x,pa.y,pa.z, pb.x,pb.y,pb.z);
+    uv.push(u,0, u,1);
+  }
+  for(let i=0;i<segs;i++){
+    const a=i*2,b=i*2+1,c=(i+1)*2,d=(i+1)*2+1;
+    idx.push(a,c,b, c,d,b);
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute('uv',       new THREE.Float32BufferAttribute(uv,2));
+  g.setIndex(idx); g.computeVertexNormals();
+  return new THREE.Mesh(g, material);
+}
+
+/* ================= global registries ================= */
+const partMeshes = {};       /* prefixed key -> meshes (both systems) */
+const PART_CENTER = {};
+const CLIP_MATS = [];
+const SKIP_SKIN = new Set(['m:penis','m:scrotum','f:labiaMaj','f:labiaMin','f:mons']);
+const QUIZ_SKIP = new Set(['m:penis','f:mons']);   /* wrappers that are never quiz targets */
+const SYSTEMS = {};
+let active = 'male';
+const sysOf = k => k.charAt(0)==='m' ? 'male' : 'female';
+let labelsOn = true;
+
+function makeSys(prefix){
+  const sys = { prefix, group:new THREE.Group(), parts:{}, pick:[],
+    order:[], quizKeys:[], inner:new Set(), labelObjs:[], labelLines:[],
+    labelMeta:[], mats:[], camPos:V3(0,2,8), camTarget:V3(0,0,0) };
+  scene.add(sys.group);
+  sys.register = (key, mesh, parent)=>{
+    mesh.userData.part = key;
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    (sys.parts[key] ||= []).push(mesh);
+    (partMeshes[key] ||= []).push(mesh);
+    sys.pick.push(mesh);
+    (parent || sys.group).add(mesh);
+    return mesh;
+  };
+  sys.add = (key, mesh)=> sys.register(prefix+key, mesh);
+  sys.addDecor = m => { sys.group.add(m); return m; };
+  return sys;
+}
+function addLabels(sys, LABELS){
+  const lineMat = new THREE.LineBasicMaterial({color:0x9fb0c4, transparent:true, opacity:0.55});
+  LABELS.forEach(L=>{
+    const div=document.createElement('div');
+    div.className='lbl';
+    div.innerHTML=`<b>${L.name}</b><span>${L.sub}</span>`;
+    div.style.pointerEvents='auto';
+    div.onclick=()=> select(sys.prefix+L.key);
+    const lo=new CSS2DObject(div);
+    const t=V3(...L.t), a=V3(...L.a);
+    lo.position.copy(a);
+    sys.group.add(lo); sys.labelObjs.push(lo);
+    const line=new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([t.clone(),a.clone()]), lineMat);
+    sys.group.add(line); sys.labelLines.push(line);
+    sys.labelMeta.push({key:sys.prefix+L.key, lo, line, t, a});
+  });
+}
+
+/* =====================================================================
+   MALE SYSTEM
+===================================================================== */
+let spermGroup=null, guideMatSperm=null, spermSets=[];
+const TAIL_N=15;
+function buildMale(){
+  const sys = makeSys('m:');
+  sys.order = ['m:testis','m:epididymis','m:vas','m:seminal','m:prostate','m:cowper',
+               'm:urethra','m:cavern','m:spong','m:glans','m:penis','m:scrotum','m:bladder'];
+  sys.quizKeys = sys.order.filter(k=>k!=='m:penis');
+  sys.inner = new Set(['m:testis','m:epididymis','m:urethra','m:cowper']);
+  sys.camPos.set(5.6,2.8,7.4); sys.camTarget.set(0,0.9,0.6);
+
+  const M = {
+    skin:    mat(0xd7a583,{roughness:0.62,transparent:true,opacity:0.42,sheen:0.5}),
+    scrot:   mat(0xc98f6f,{roughness:0.7, transparent:true,opacity:0.35,sheen:0.5}),
+    glans:   mat(0xc98d7a,{roughness:0.28,clearcoat:0.8,clearcoatRoughness:0.22}),
+    testis:  mat(0xe8d9c4,{roughness:0.45,clearcoat:0.3}),
+    epid:    mat(0xc98a80), vas: mat(0xe0cbb0), bladder: mat(0xcf9d7e),
+    prostate:mat(0xc08e83), seminal: mat(0xb87d7d), cowper: mat(0xcaa5a0),
+    urethra: mat(0x9db3c8,{roughness:0.45,clearcoat:0.3}),
+    cavern:  mat(0xd4a391), spong: mat(0xcfa08f)
+  };
+  [[M.skin,4,0.025],[M.scrot,6,0.045],[M.bladder,3,0.015],[M.prostate,3,0.02],
+   [M.testis,3,0.008],[M.glans,3,0.008],[M.epid,3,0.012],[M.vas,3,0.01],
+   [M.seminal,3,0.012],[M.cowper,3,0.012],[M.urethra,3,0.008],
+   [M.cavern,3,0.012],[M.spong,3,0.012]].forEach(([m,rep,amp])=>{
+    m.bumpMap=makeNoise(rep); m.bumpScale=amp; m.roughnessMap=m.bumpMap;
+  });
+  sys.mats = Object.values(M);
+
+  sys.add('bladder', blob([0,3.3,-0.5],0.8,M.bladder,[0.95,0.9,0.85],0.015,2.5));
+  sys.add('prostate', blob([ 0.17,2.44,0.16],0.40,M.prostate,[0.95,0.8,0.9],0.02,4));
+  sys.add('prostate', blob([-0.17,2.44,0.16],0.40,M.prostate,[0.95,0.8,0.9],0.02,4));
+  sys.add('prostate', blob([ 0,   2.32,0.20],0.33,M.prostate,[1,0.75,0.85], 0.02,4));
+
+  const svPts=[[0.32,2.62,-0.4],[0.55,2.75,-0.5],[0.6,3.0,-0.8],[0.5,3.2,-1.05],
+               [0.3,3.0,-1.1],[0.25,2.7,-0.85],[0.3,2.6,-0.6]];
+  const svR = u => 0.1+0.035*Math.sin(u*22)+0.02*(1-u);
+  [svPts, mirror(svPts)].forEach(pts=>{
+    sys.add('seminal', taperedTube(pts, svR, M.seminal));
+    sys.add('seminal', cap(pts[0], 0.11, M.seminal));
+    sys.add('seminal', cap(pts[pts.length-1], 0.10, M.seminal));
+  });
+
+  const vdPts=[[0.45,-1.2,-0.28],[0.5,-0.65,-0.5],[0.55,-0.05,-0.35],[0.66,0.45,0.0],
+               [0.78,1.3,0.05],[0.9,2.3,-0.4],[0.92,3.0,-0.9],[0.6,3.45,-1.2],
+               [0.3,3.0,-1.05],[0.22,2.55,-0.5],[0.15,2.42,0.05]];
+  const vdR = u => 0.085-0.012*u+0.006*Math.sin(u*25);
+  sys.add('vas', taperedTube(vdPts, vdR, M.vas));
+  sys.add('vas', taperedTube(mirror(vdPts), vdR, M.vas));
+
+  const urPts=[[0,2.85,-0.25],[0,2.6,0.0],[0,2.42,0.2],[0,2.25,0.35],[0,2.08,0.6],
+               [0,1.97,1.0],[0,1.9,1.8],[0,1.83,2.5],[0,1.79,2.85],[0,1.73,3.15],
+               [0,1.68,3.38],[0,1.65,3.52]];
+  const urR = u => 0.05-0.033*Math.pow(Math.max(0,(u-0.82)/0.18),1.4);
+  sys.add('urethra', taperedTube(urPts, urR, M.urethra, 80, 12));
+
+  [[0.38,-0.75,0.1],[-0.38,-0.75,0.1]].forEach(p=>{
+    const t=blob(p,0.42,M.testis,[0.85,1.15,0.9],0,0);
+    t.rotation.set(0.08,0,p[0]>0?-0.14:0.14);
+    sys.add('testis',t);
+  });
+  const epiPts=[[0.45,-0.25,-0.15],[0.55,-0.55,-0.4],[0.52,-0.85,-0.46],[0.45,-1.15,-0.3]];
+  const epiR = u => 0.105-0.055*u+0.015*Math.sin(u*14);
+  [epiPts, mirror(epiPts)].forEach(pts=>{
+    sys.add('epididymis', taperedTube(pts, epiR, M.epid));
+    sys.add('epididymis', cap(pts[0], 0.10, M.epid));
+    sys.add('epididymis', cap(pts[pts.length-1], 0.05, M.epid));
+  });
+  sys.add('scrotum', blob([0,-0.7,0.1],0.8,M.scrot,[1.15,1.25,1.05],0.012,6));
+
+  [[1],[-1]].forEach(([s])=>{
+    sys.add('cowper', blob([s*0.22,1.75,0.35],0.11,M.cowper));
+    sys.add('cowper', taperedTube(
+      [[s*0.22,1.78,0.36],[s*0.12,1.95,0.4],[0,2.05,0.43]],()=>0.03,M.cowper,24,8));
+  });
+
+  sys.add('penis', taperedTube([[0,2.12,0.55],[0,2.0,1.2],[0,1.88,2.0],[0,1.80,2.62]],
+    u=>0.43-0.03*u, M.skin, 48, 24));
+  sys.add('penis', cap([0,2.12,0.57], 0.43, M.skin));
+  sys.add('penis', cap([0,1.795,2.60], 0.40, M.skin));
+
+  const cavR = u => 0.165-0.02*u;
+  [[1],[-1]].forEach(([s])=>{
+    const pts=[[s*0.19,2.12,0.62],[s*0.19,1.96,1.6],[s*0.19,1.8,2.76]];
+    sys.add('cavern', taperedTube(pts, cavR, M.cavern));
+    sys.add('cavern', cap(pts[0], 0.15, M.cavern));
+  });
+  sys.add('spong', taperedTube([[0,2.0,0.42],[0,1.95,1.2],[0,1.85,2.2],[0,1.78,2.86]],
+    u=>0.135+0.085*Math.exp(-u*6), M.spong, 48, 20));
+  sys.add('spong', cap([0,2.0,0.42], 0.2, M.spong));
+
+  const glansProfile=[[0.16,0],[0.23,0.04],[0.335,0.12],[0.385,0.22],[0.38,0.34],
+    [0.33,0.5],[0.25,0.64],[0.15,0.76],[0.07,0.84],[0.028,0.875],
+    [0.012,0.885],[0.02,0.9],[0.002,0.908]];
+  const glans=new THREE.Mesh(
+    new THREE.LatheGeometry(glansProfile.map(p=>new THREE.Vector2(p[0],p[1])),48),M.glans);
+  glans.position.set(0,1.78,2.68);
+  glans.quaternion.setFromUnitVectors(V3(0,1,0),V3(0,-0.122,0.992).normalize());
+  sys.add('glans',glans);
+
+  /* decor: veins + raphe */
+  const veinMat=mat(0x5f7292,{roughness:0.45,clearcoat:0.5});
+  const darkSkin=mat(0xb07a5c,{roughness:0.75});
+  const dT=(pts,r,m)=>{ const c=new THREE.CatmullRomCurve3(pts.map(p=>V3(...p)));
+    sys.addDecor(new THREE.Mesh(new THREE.TubeGeometry(c,32,r,10),m)); };
+  dT([[0,2.54,0.5],[0,2.45,1.1],[0,2.35,1.75],[0,2.27,2.2],[0,2.21,2.5]],0.024,veinMat);
+  dT([[0.35,2.32,0.65],[0.34,2.23,1.3],[0.336,2.115,2.0],[0.33,2.06,2.4]],0.015,veinMat);
+  dT([[-0.28,-0.15,0.75],[-0.33,-0.65,0.82],[-0.22,-1.15,0.62]],0.013,veinMat);
+  dT([[0.2,-0.25,0.8],[0.28,-0.8,0.78],[0.18,-1.2,0.58]],0.013,veinMat);
+  dT([[0,0.1,0.62],[0,-0.35,0.87],[0,-0.7,0.93],[0,-1.05,0.87],[0,-1.35,0.72]],0.02,darkSkin);
+  sys.mats.push(veinMat, darkSkin);
+  CLIP_MATS.push(...sys.mats);
+
+  addLabels(sys,[
+    {key:'bladder',   name:'Bladder',          sub:'urine storage',       t:[0,3.4,-1.2],   a:[0,4.05,-2.0]},
+    {key:'prostate',  name:'Prostate',         sub:'semen fluid',         t:[0.45,2.4,0.25],a:[1.75,2.8,0.6]},
+    {key:'seminal',   name:'Seminal Vesicle',  sub:'semen fluid',         t:[0.55,3.05,-0.85],a:[1.9,3.35,-1.05]},
+    {key:'vas',       name:'Vas Deferens',     sub:'sperm transport',     t:[0.85,1.6,-0.1],a:[1.95,1.3,0.1]},
+    {key:'epididymis',name:'Epididymis',       sub:'sperm storage',       t:[0.55,-0.55,-0.42],a:[1.55,-0.45,-0.7]},
+    {key:'testis',    name:'Testis',           sub:'sperm + testosterone',t:[-0.4,-0.75,0.2],a:[-1.55,-0.8,0.4]},
+    {key:'scrotum',   name:'Scrotum',          sub:'temperature control', t:[-0.6,-1.25,0.0],a:[-1.75,-1.6,-0.1]},
+    {key:'urethra',   name:'Urethra',          sub:'exit channel',        t:[0,2.45,0.15],  a:[-1.6,2.95,0.35]},
+    {key:'cavern',    name:'Corpus Cavernosum',sub:'erectile tissue',     t:[-0.35,2.0,1.5],a:[-1.95,2.3,1.6]},
+    {key:'spong',     name:'Corpus Spongiosum',sub:'erectile tissue',     t:[0.2,1.88,1.4], a:[1.7,1.3,1.5]},
+    {key:'glans',     name:'Glans',            sub:'tip of penis',        t:[0,1.72,3.35],  a:[0,2.55,4.0]},
+    {key:'cowper',    name:'Bulbourethral Gland',sub:'pre-ejaculate',     t:[0.25,1.75,0.35],a:[1.7,1.45,0.05]},
+  ]);
+  SYSTEMS.male = sys;
+
+  /* ---- sperm path ---- */
+  spermGroup = new THREE.Group(); spermGroup.visible=false; sys.group.add(spermGroup);
+  guideMatSperm = new THREE.MeshBasicMaterial({color:0x37b6ff,transparent:true,
+    opacity:0.3, depthTest:false});
+  const pathPre=[[0.36,-0.9,0.1],[0.45,-0.25,-0.15],[0.53,-0.5,-0.38],[0.5,-0.85,-0.44],...vdPts];
+  const pathPost=[[0,2.3,0.28], ...urPts.slice(3), [0,1.66,3.56]];
+  const spermCurves=[
+    new THREE.CatmullRomCurve3(pathPre.concat(pathPost).map(p=>V3(...p))),
+    new THREE.CatmullRomCurve3(mirror(pathPre).concat(pathPost).map(p=>V3(...p)))
+  ];
+  spermCurves.forEach(c=> spermGroup.add(
+    new THREE.Mesh(new THREE.TubeGeometry(c,220,0.02,8), guideMatSperm)));
+  const SPERM_PER=10;
+  const headGeo=new THREE.SphereGeometry(0.055,12,10);
+  const headMat=new THREE.MeshBasicMaterial({color:0xbfefff, depthTest:false});
+  const tailMat=new THREE.LineBasicMaterial({color:0x5fd0ff,transparent:true,
+    opacity:0.9, depthTest:false});
+  const glowMatS=new THREE.SpriteMaterial({map:makeGlow(), color:0x66d9ff,
+    transparent:true, opacity:0.45, depthTest:false, blending:THREE.AdditiveBlending});
+  spermSets=[];
+  spermCurves.forEach(curve=>{
+    const set={curve, tailStep:(0.3/curve.getLength())/(TAIL_N-1), sperms:[]};
+    for(let i=0;i<SPERM_PER;i++){
+      const head=new THREE.Mesh(headGeo,headMat);
+      head.scale.set(0.75,0.75,1.35); head.renderOrder=100; head.frustumCulled=false;
+      const glow=new THREE.Sprite(glowMatS.clone());
+      glow.scale.set(0.22,0.22,1); glow.renderOrder=101;
+      const tg=new THREE.BufferGeometry();
+      tg.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(TAIL_N*3),3));
+      const tail=new THREE.Line(tg,tailMat);
+      tail.renderOrder=100; tail.frustumCulled=false;
+      spermGroup.add(head,glow,tail);
+      set.sperms.push({head,glow,tail,phase:i/SPERM_PER});
+    }
+    spermSets.push(set);
+  });
+}
+const _p=new THREE.Vector3(), _t=new THREE.Vector3(), _s=new THREE.Vector3(),
+      _fwd=new THREE.Vector3(0,0,1), _up=new THREE.Vector3(0,1,0);
+function updateSperm(t){
+  for(const set of spermSets) for(const sp of set.sperms){
+    const u=(t*0.06+sp.phase)%1;
+    set.curve.getPointAt(u,_p); set.curve.getTangentAt(u,_t);
+    sp.head.position.copy(_p); sp.glow.position.copy(_p);
+    sp.head.quaternion.setFromUnitVectors(_fwd,_t);
+    const pos=sp.tail.geometry.attributes.position;
+    for(let k=0;k<TAIL_N;k++){
+      const uu=Math.max(0, u-k*set.tailStep);
+      set.curve.getPointAt(uu,_p); set.curve.getTangentAt(uu,_t);
+      _s.crossVectors(_t,_up);
+      if(_s.lengthSq()<1e-6) _s.set(1,0,0); else _s.normalize();
+      const w=Math.sin(t*9-k*0.9+sp.phase*12.57)*0.024*(k/(TAIL_N-1));
+      pos.setXYZ(k,_p.x+_s.x*w,_p.y+_s.y*w,_p.z+_s.z*w);
+    }
+    pos.needsUpdate=true;
+  }
+}
+
+/* =====================================================================
+   FEMALE SYSTEM
+===================================================================== */
+let eggGroup=null, guideMatEgg=null, eggSets=[];
+function buildFemale(){
+  const sys = makeSys('f:');
+  sys.order = ['f:ovary','f:fimbriae','f:fallopian','f:uterus','f:endometrium',
+               'f:cervix','f:vagina','f:mons','f:labiaMaj','f:labiaMin',
+               'f:clitoris','f:urethra','f:bladder'];
+  sys.quizKeys = sys.order.filter(k=>k!=='f:mons');
+  sys.inner = new Set(['f:urethra','f:clitoris','f:labiaMin','f:vagina',
+                       'f:cervix','f:endometrium']);
+  sys.camPos.set(4.9,2.1,6.6); sys.camTarget.set(0,1.3,0.55);
+
+  const M = {
+    uterus: mat(0xd68f8c,{roughness:0.5, side:THREE.DoubleSide}),
+    endo:   mat(0xb84a5a,{roughness:0.4, side:THREE.DoubleSide, clearcoat:0.4}),
+    cervix: mat(0xd8a29a,{roughness:0.5, side:THREE.DoubleSide}),
+    vagina: mat(0xd9a39c,{roughness:0.5, side:THREE.DoubleSide}),
+    ovary:  mat(0xd9b8ad,{roughness:0.45, clearcoat:0.3}),
+    tube:   mat(0xe0a8a2),
+    fimb:   mat(0xc96e79,{roughness:0.45}),
+    bladder:mat(0xcf9d7e),
+    urethra:mat(0x9db3c8,{roughness:0.45, clearcoat:0.3}),
+    clitoris:mat(0xc98d7a,{roughness:0.3, clearcoat:0.8, clearcoatRoughness:0.22}),
+    labMin: mat(0xd8a08f,{roughness:0.5, transparent:true, opacity:0.55}),
+    labMaj: mat(0xd7a583,{roughness:0.62, transparent:true, opacity:0.5, sheen:0.5}),
+    mons:   mat(0xd8ab8b,{roughness:0.62, transparent:true, opacity:0.55, sheen:0.5})
+  };
+  [[M.uterus,4,0.012],[M.endo,3,0.008],[M.cervix,3,0.01],[M.vagina,4,0.012],
+   [M.ovary,3,0.01],[M.tube,3,0.01],[M.fimb,3,0.012],[M.bladder,3,0.015],
+   [M.urethra,3,0.008],[M.clitoris,3,0.008],[M.labMin,4,0.02],
+   [M.labMaj,4,0.025],[M.mons,3,0.015]].forEach(([m,rep,amp])=>{
+    m.bumpMap=makeNoise(rep); m.bumpScale=amp; m.roughnessMap=m.bumpMap;
+  });
+  sys.mats = Object.values(M);
+
+  /* pivot: uterus tilts forward (anteverted) */
+  const pivot=new THREE.Group();
+  pivot.position.set(0,1.0,0.15); pivot.rotation.x=0.28;
+  sys.group.add(pivot);
+  const lathe=(prof,m)=>new THREE.Mesh(
+    new THREE.LatheGeometry(prof.map(p=>new THREE.Vector2(p[0],p[1])),48),m);
+  const toSys=(key,mesh)=> sys.register('f:'+key, mesh, pivot);
+
+  /* uterus: hollow body (wall + cavity) */
+  toSys('uterus', lathe([[0.30,0.36],[0.38,0.55],[0.48,0.80],[0.48,1.15],[0.40,1.38],
+    [0.25,1.50],[0.02,1.55],[0.02,1.44],[0.22,1.32],[0.32,1.05],[0.32,0.78],
+    [0.17,0.55],[0.08,0.42]], M.uterus));
+  /* endometrium: lining inside the cavity */
+  toSys('endometrium', lathe([[0.03,0.44],[0.05,0.50],[0.14,0.60],[0.28,0.82],
+    [0.28,1.02],[0.18,1.28],[0.02,1.40]], M.endo));
+  /* cervix: hollow with a canal */
+  toSys('cervix', lathe([[0.20,0.0],[0.26,0.12],[0.28,0.30],[0.30,0.42],
+    [0.07,0.40],[0.06,0.20],[0.05,0.02]], M.cervix));
+
+  /* vagina: hollow tube up to the cervix */
+  const vagina=lathe([[0.22,0.02],[0.28,0.3],[0.32,0.9],[0.34,1.5],[0.38,1.9],
+    [0.26,1.9],[0.24,1.5],[0.22,0.9],[0.18,0.3],[0.15,0.05]], M.vagina);
+  vagina.position.set(0,-0.9,0.75);
+  vagina.quaternion.setFromUnitVectors(V3(0,1,0), V3(0,0.953,-0.301).normalize());
+  vagina.scale.x=0.95;
+  sys.add('vagina', vagina);
+
+  sys.add('bladder', blob([0,1.85,1.3],0.5,M.bladder,[0.95,0.8,0.85],0.015,2.5));
+  sys.add('urethra', taperedTube([[0,1.4,1.15],[0,0.5,1.0],[0,-0.62,0.9]],
+    u=>0.055-0.01*u, M.urethra, 40, 12));
+
+  /* fallopian tubes + fimbriae + ovaries */
+  const tubePts=[[0.42,2.25,0.50],[0.85,2.55,0.45],[1.25,2.65,0.30],[1.5,2.45,0.20],[1.6,2.2,0.12]];
+  const tubeR = u => 0.045+0.05*u+0.06*Math.pow(Math.max(0,(u-0.8)/0.2),2);
+  [tubePts, mirror(tubePts)].forEach(pts=> sys.add('fallopian',
+    taperedTube(pts, tubeR, M.tube, 64, 12)));
+  const fBase=V3(1.6,2.2,0.12), toOvary=V3(-0.1,-0.3,-0.07).normalize();
+  [1,-1].forEach(s=>{
+    const base=fBase.clone(); base.x*=s;
+    const axis=toOvary.clone(); axis.x*=s;
+    for(let i=0;i<7;i++){
+      const ang=i/7*Math.PI*2;
+      const side=V3(Math.cos(ang),0,Math.sin(ang));
+      const dir=axis.clone().addScaledVector(side,0.55).normalize();
+      const end=base.clone().addScaledVector(dir,0.24);
+      sys.add('fimbriae', taperedTube([[base.x,base.y,base.z],[end.x,end.y,end.z]],
+        u=>0.028-0.016*u, M.fimb, 12, 8));
+    }
+  });
+  [[1],[-1]].forEach(([s])=>{
+    const o=blob([s*1.5,1.9,0.05],0.30,M.ovary,[1.05,0.8,0.65],0.02,4);
+    o.rotation.z=s*0.2;
+    sys.add('ovary',o);
+  });
+
+  /* vulva */
+  sys.add('mons',     blob([0,-0.35,1.05],0.42,M.mons,[1.3,0.7,0.95],0.02,3));
+  sys.add('clitoris', blob([0,-0.55,1.02],0.09,M.clitoris,[1,0.9,1],0,0));
+  sys.add('clitoris', taperedTube([[0,-0.55,1.0],[0,-0.45,0.9]],
+    ()=>0.05, M.clitoris, 12, 8));
+  [[1],[-1]].forEach(([s])=>{
+    const min=blob([s*0.17,-0.72,0.92],0.42,M.labMin,[0.22,0.85,0.25],0,0);
+    min.rotation.z=s*-0.12;
+    sys.add('labiaMin',min);
+    sys.add('labiaMaj', blob([s*0.45,-0.75,0.78],0.5,M.labMaj,[0.55,0.95,0.65],0.02,4));
+  });
+
+  /* broad ligament (translucent sheet, decorative) */
+  const ligMat=new THREE.MeshPhysicalMaterial({color:0xe8d5da, transparent:true,
+    opacity:0.18, side:THREE.DoubleSide, roughness:0.8, depthWrite:false});
+  const ligA=[[0.44,2.25,0.48],[0.85,2.55,0.42],[1.30,2.60,0.30],[1.55,2.35,0.18]];
+  const ligB=[[0.44,1.95,0.45],[0.85,1.90,0.35],[1.30,1.75,0.18],[1.50,1.75,0.05]];
+  sys.addDecor(ribbon(ligA, ligB, ligMat));
+  sys.addDecor(ribbon(mirror(ligA), mirror(ligB), ligMat));
+  sys.mats.push(ligMat);
+  CLIP_MATS.push(...sys.mats);
+
+  addLabels(sys,[
+    {key:'ovary',    name:'Ovary',          sub:'eggs + hormones',    t:[1.5,1.9,0.05],  a:[2.4,1.75,-0.1]},
+    {key:'fimbriae', name:'Fimbriae',       sub:'egg capture',        t:[1.62,2.1,0.1],  a:[2.45,2.2,-0.15]},
+    {key:'fallopian',name:'Fallopian Tube', sub:'egg transport · fertilization', t:[1.1,2.6,0.38], a:[2.2,2.85,0.25]},
+    {key:'uterus',   name:'Uterus (Womb)',  sub:'gestation · labor',  t:[0.4,2.15,0.5],  a:[-1.95,2.55,0.6]},
+    {key:'endometrium',name:'Endometrium',  sub:'implantation · period', t:[0,1.8,0.4],  a:[-1.95,1.85,0.35]},
+    {key:'cervix',   name:'Cervix',         sub:'neck of uterus',     t:[0,1.05,0.15],   a:[-1.8,0.85,0.0]},
+    {key:'vagina',   name:'Vagina',         sub:'birth canal',        t:[0,0.1,0.43],    a:[-1.75,0.0,0.6]},
+    {key:'mons',     name:'Mons Pubis',     sub:'fatty cushion',      t:[0,-0.35,1.05],  a:[1.6,-0.15,1.45]},
+    {key:'labiaMaj', name:'Labia Majora',   sub:'outer folds',        t:[0.45,-0.75,0.8],a:[1.7,-1.1,0.7]},
+    {key:'labiaMin', name:'Labia Minora',   sub:'inner folds',        t:[-0.17,-0.72,0.92],a:[-1.65,-0.85,1.0]},
+    {key:'clitoris', name:'Clitoris',       sub:'sensitive organ',    t:[0,-0.55,1.05],  a:[-1.55,-0.3,1.25]},
+    {key:'urethra',  name:'Urethra',        sub:'urine exit',         t:[0,0.5,1.0],     a:[1.75,0.7,1.2]},
+    {key:'bladder',  name:'Bladder',        sub:'urine storage',      t:[0,1.85,1.15],   a:[1.85,2.45,1.4]},
+  ]);
+  SYSTEMS.female = sys;
+
+  /* ---- egg path ---- */
+  eggGroup = new THREE.Group(); eggGroup.visible=false; sys.group.add(eggGroup);
+  guideMatEgg = new THREE.MeshBasicMaterial({color:0xd9a441, transparent:true,
+    opacity:0.35, depthTest:false});
+  const eggR=[[1.5,1.95,0.05],[1.58,2.06,0.09],[1.6,2.22,0.12],[1.52,2.48,0.20],
+    [1.22,2.62,0.32],[0.82,2.48,0.46],[0.44,2.2,0.52],[0.22,1.98,0.50],
+    [0.12,1.75,0.42],[0.06,1.52,0.34],[0.03,1.38,0.30]];
+  const eggL = mirror(eggR.slice(0,7)).concat(eggR.slice(7));
+  const eggCurves=[eggR, eggL].map(pts=>new THREE.CatmullRomCurve3(pts.map(p=>V3(...p))));
+  eggCurves.forEach(c=> eggGroup.add(
+    new THREE.Mesh(new THREE.TubeGeometry(c,200,0.02,8), guideMatEgg)));
+  const eggGeo=new THREE.SphereGeometry(0.08,16,12);
+  const eggMat=new THREE.MeshBasicMaterial({color:0xffd98a, depthTest:false});
+  const glowMatE=new THREE.SpriteMaterial({
+    map:makeGlow('rgba(255,225,170,.95)','rgba(255,180,80,.4)'),
+    color:0xffc36e, transparent:true, opacity:0.5, depthTest:false,
+    blending:THREE.AdditiveBlending});
+  eggSets=[];
+  eggCurves.forEach(curve=>{
+    const set={curve, eggs:[]};
+    for(let i=0;i<4;i++){
+      const head=new THREE.Mesh(eggGeo,eggMat);
+      head.renderOrder=100; head.frustumCulled=false;
+      const glow=new THREE.Sprite(glowMatE.clone());
+      glow.scale.set(0.3,0.3,1); glow.renderOrder=101;
+      eggGroup.add(head,glow);
+      set.eggs.push({head,glow,phase:i/4});
+    }
+    eggSets.push(set);
+  });
+}
+function updateEgg(t){
+  for(const set of eggSets) for(const e of set.eggs){
+    const u=(t*0.03+e.phase)%1;
+    set.curve.getPointAt(u,_p);
+    e.head.position.copy(_p); e.glow.position.copy(_p);
+    e.head.scale.setScalar(0.85+0.18*Math.sin(t*3.5+e.phase*9));
+  }
+}
+
+buildMale();
+buildFemale();
+scene.updateMatrixWorld(true);
+for(const k in partMeshes){
+  const box=new THREE.Box3();
+  partMeshes[k].forEach(m=> box.expandByObject(m));
+  PART_CENTER[k]=box.getCenter(new THREE.Vector3());
+}
+
+/* quiz ❓ marker */
+const markerDiv=document.createElement('div');
+markerDiv.innerHTML='<span>❓</span>';
+const marker=new CSS2DObject(markerDiv);
+marker.visible=false; scene.add(marker);
+
+/* =====================================================================
+   SEPARATE (exploded view)
+===================================================================== */
+const EXPLODE={
+  'm:bladder':{d:[0,1.1,-0.9]},   'm:prostate':{d:[0,0,-1.3]},
+  'm:seminal':{d:[1.25,0.6,-0.9],p:1}, 'm:vas':{d:[1.6,0.15,0],p:1},
+  'm:urethra':{d:[0,0.95,1.15]},  'm:penis':{d:[0,0.05,1.5]},
+  'm:cavern':{d:[0.85,0.55,1.0],p:1}, 'm:spong':{d:[0,-0.55,1.25]},
+  'm:glans':{d:[0,0.15,2.1]},     'm:cowper':{d:[0.7,-0.6,0.6],p:1},
+  'm:scrotum':{d:[0,-1.15,-0.15]},'m:testis':{d:[0,-1.8,0.45]},
+  'm:epididymis':{d:[0.95,-1.45,0.5],p:1},
+  'f:ovary':{d:[1.45,-0.1,0],p:1}, 'f:fimbriae':{d:[1.6,0.45,0.1],p:1},
+  'f:fallopian':{d:[1.25,0.95,0.15],p:1}, 'f:uterus':{d:[0,0.85,-0.35]},
+  'f:endometrium':{d:[0,1.6,0.45]}, 'f:cervix':{d:[0,-0.85,0.55]},
+  'f:vagina':{d:[0,-1.7,0.85]},   'f:mons':{d:[0,-0.75,1.7]},
+  'f:labiaMaj':{d:[1.15,-1.35,0.9],p:1}, 'f:labiaMin':{d:[0.75,-0.95,1.35],p:1},
+  'f:clitoris':{d:[0,-0.25,2.0]}, 'f:urethra':{d:[0,0.45,1.6]},
+  'f:bladder':{d:[0,1.35,1.35]}
+};
+const explodeData=[];
+for(const k in partMeshes){
+  const cfg=EXPLODE[k]||{d:[0,1,0]};
+  partMeshes[k].forEach(mesh=>{
+    const wc=new THREE.Box3().setFromObject(mesh).getCenter(new THREE.Vector3());
+    const dir=V3(...cfg.d);
+    if(cfg.p) dir.x*=(wc.x>=0?1:-1);
+    dir.normalize();
+    const invQ=mesh.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
+    explodeData.push({mesh, base:mesh.position.clone(), invQ, dir, sys:sysOf(k)});
+  });
+}
+let expTarget=0, expCur=0;
+const EXP_SCALE=2.2;
+function applyExplode(f){
+  for(const e of explodeData){
+    if(e.sys!==active) continue;
+    const d=e.dir.clone().multiplyScalar(f*EXP_SCALE).applyQuaternion(e.invQ);
+    e.mesh.position.copy(e.base).add(d);
+  }
+  const sys=SYSTEMS[active];
+  sys.labelMeta.forEach(L=>{
+    const cfg=EXPLODE[L.key]||{d:[0,1,0]};
+    const dir=V3(...cfg.d);
+    if(cfg.p) dir.x*=(L.t.x>=0?1:-1);
+    dir.normalize().multiplyScalar(f*EXP_SCALE);
+    L.lo.position.copy(L.a).add(dir);
+    const pos=L.line.geometry.attributes.position;
+    pos.setXYZ(0,L.t.x+dir.x,L.t.y+dir.y,L.t.z+dir.z);
+    pos.setXYZ(1,L.a.x+dir.x,L.a.y+dir.y,L.a.z+dir.z);
+    pos.needsUpdate=true;
+  });
+}
+function partOffset(k, f){
+  const cfg=EXPLODE[k]||{d:[0,1,0]};
+  const dir=V3(...cfg.d);
+  if(cfg.p) dir.x*=(PART_CENTER[k].x>=0?1:-1);
+  return dir.normalize().multiplyScalar(f*EXP_SCALE);
+}
+const btnSep=document.getElementById('btnSep'),
+      expbar=document.getElementById('expbar'),
+      expSlider=document.getElementById('expSlider'),
+      expVal=document.getElementById('expVal');
+function setExplode(f){
+  expTarget=f;
+  if(f>0){
+    if(spermGroup.visible||eggGroup.visible){
+      spermGroup.visible=false; eggGroup.visible=false;
+      xrayPath=false; applyXray(); updatePathBtn();
+    }
+    expbar.classList.add('on');
+    const d=camera.position.distanceTo(controls.target);
+    if(d<10.5) camera.position.sub(controls.target).setLength(10.5).add(controls.target);
+  } else expbar.classList.remove('on');
+  btnSep.classList.toggle('on', f>0);
+}
+btnSep.onclick=()=> setExplode(expTarget>0 ? 0 : 0.6);
+document.getElementById('expOff').onclick=()=> setExplode(0);
+expSlider.addEventListener('input', e=>{
+  setExplode(parseFloat(e.target.value));
+  expVal.textContent=(+e.target.value).toFixed(2);
+});
+
+/* ================= info ================= */
+const INFO={
+  'm:testis':{name:'Testis', sub:'Sperm & testosterone production',
+    fn:'Produces sperm in its seminiferous tubules and secretes testosterone. The paired testes sit in the scrotum, kept ~2–3 °C below body temperature — ideal for sperm production.'},
+  'm:epididymis':{name:'Epididymis', sub:'Sperm maturation & storage',
+    fn:'A long coiled tube on the back of each testis. Sperm leaving the testis are immature; here they gain the ability to swim and fertilize, and are stored for up to several weeks.'},
+  'm:vas':{name:'Vas Deferens', sub:'Sperm transport',
+    fn:'A thick muscular tube that carries mature sperm from the epididymis up past the bladder and down to the prostate. Contractions of its muscle wall push sperm forward (peristalsis).'},
+  'm:seminal':{name:'Seminal Vesicle', sub:'~60–70% of semen volume',
+    fn:'A pair of glands behind the bladder. Their alkaline, fructose-rich fluid feeds sperm energy and helps neutralize the acidic environment of the vagina.'},
+  'm:prostate':{name:'Prostate Gland', sub:'~20–30% of semen volume',
+    fn:'A walnut-sized gland below the bladder wrapping around the urethra. Its milky fluid contains enzymes and nutrients that keep sperm motile.'},
+  'm:cowper':{name:'Bulbourethral Gland', sub:"Cowper's glands — pre-ejaculate",
+    fn:'Two pea-sized glands below the prostate. During arousal they release mucus that lubricates the urethra and neutralizes leftover acidic urine so sperm survive the journey.'},
+  'm:scrotum':{name:'Scrotum', sub:'Temperature control',
+    fn:'A skin pouch holding the testes. Its muscles relax or tighten (wrinkling when cold) to keep the testes a few degrees below core temperature.'},
+  'm:urethra':{name:'Urethra', sub:'Shared exit channel',
+    fn:'The tube that carries both urine and semen out through the penis: from the bladder, through the prostate, along the full length of the penis to the external opening (meatus).'},
+  'm:penis':{name:'Penis', sub:'Organ of copulation',
+    fn:'Delivers semen during intercourse and carries the urethra. Erection happens when its three columns of erectile tissue — two corpora cavernosa plus the corpus spongiosum — fill with blood.'},
+  'm:cavern':{name:'Corpus Cavernosum', sub:'Erectile tissue (×2)',
+    fn:'Two parallel cylinders forming the upper side of the shaft. During arousal they fill with blood, producing the rigidity of the erection.'},
+  'm:spong':{name:'Corpus Spongiosum', sub:'Erectile tissue around the urethra',
+    fn:'A column of spongy tissue surrounding the urethra; it swells at the base (bulb) and the tip (glans). It stays softer during erection so the urethra stays open for ejaculation.'},
+  'm:glans':{name:'Glans Penis', sub:'Tip of the penis',
+    fn:'The expanded, highly sensitive tip with a flared edge (corona), rich in nerve endings. The external opening of the urethra (meatus) is at its center.'},
+  'm:bladder':{name:'Urinary Bladder', sub:'Urine storage (urinary system)',
+    fn:'A muscular sac that stores urine and contracts to push it out through the urethra.'},
+
+  'f:ovary':{name:'Ovary', sub:'Eggs + female hormones',
+    fn:'Produces one mature egg (ovum) per cycle and secretes estrogen &amp; progesterone, which drive the menstrual cycle and secondary sex characteristics. Almond-shaped, held near each fallopian tube.'},
+  'f:fallopian':{name:'Fallopian Tube', sub:'Egg transport · fertilization site',
+    fn:'A ~10 cm tube lined with cilia that sweeps the egg toward the uterus. Fertilization normally happens in its widened middle section (ampulla).'},
+  'f:fimbriae':{name:'Fimbriae', sub:'Egg capture',
+    fn:'Finger-like fringes at the opening of each fallopian tube. At ovulation they sweep over the ovary and guide the released egg into the tube.'},
+  'f:uterus':{name:'Uterus (Womb)', sub:'Gestation · labor',
+    fn:'A thick, muscular, pear-shaped organ. Its lining receives the embryo, and its walls stretch enormously to house the fetus. In labor, powerful contractions deliver the baby.'},
+  'f:endometrium':{name:'Endometrium', sub:'Implantation · menstruation',
+    fn:'The blood-rich inner lining of the uterus. It thickens every cycle to receive an embryo; if none implants, it is shed — this is menstruation (the period). Use Separate or Cross-Section to see it inside the wall.'},
+  'f:cervix':{name:'Cervix', sub:'Neck of the uterus',
+    fn:'The narrow lower end of the uterus. Its canal connects the uterine cavity to the vagina; its mucus thins at ovulation and blocks sperm at other times; it stretches (dilates) wide during birth.'},
+  'f:vagina':{name:'Vagina', sub:'Birth canal · intercourse',
+    fn:'A muscular, elastic tube connecting the cervix to the outside. It receives the penis during intercourse and forms the birth canal. Its slightly acidic environment helps resist infection.'},
+  'f:mons':{name:'Mons Pubis', sub:'Fatty cushion',
+    fn:'A rounded fatty pad over the pubic bone at the front of the vulva. It cushions and protects underlying bone and becomes hair-covered after puberty.'},
+  'f:labiaMaj':{name:'Labia Majora', sub:'Outer protective folds',
+    fn:'The fleshy outer folds of the vulva, containing fat pads, sweat and oil glands. They protect inner structures; hair grows on them after puberty.'},
+  'f:labiaMin':{name:'Labia Minora', sub:'Inner folds (mucosal)',
+    fn:'Thin, hairless inner folds surrounding the urethral and vaginal openings. They keep the vestibule moist and protect it.'},
+  'f:clitoris':{name:'Clitoris', sub:'Sensitive erectile organ',
+    fn:'A small, highly sensitive erectile organ at the front of the vulva — developmentally homologous to the penis. Its role is sexual sensation and arousal.'},
+  'f:urethra':{name:'Urethra', sub:'Urine exit (short!)',
+    fn:'A short tube (~3–4 cm in females) carrying urine from the bladder to an opening in front of the vagina. Its shortness is why urinary tract infections are more common in females.'},
+  'f:bladder':{name:'Urinary Bladder', sub:'Urine storage (urinary system)',
+    fn:'A muscular sac that stores urine. In females it sits in front of the uterus and vagina, above the pubic bone.'}
+};
+
+/* ================= panel ================= */
+const panel=document.getElementById('panel');
+function showDefault(){
+  panel.classList.toggle('fem', active==='female');
+  const fem=active==='female';
+  panel.innerHTML=`
+    <div class="p-name">${fem?'♀':'♂'} Click any part</div>
+    <div class="p-sub">${fem?'FEMALE':'MALE'} · Interactive 3D study model</div>
+    <div class="p-fn">• Click a structure (or its label) → <b>name + function</b><br>
+    • <b>◀ ▶</b> below step through all 13 parts<br>
+    • <b>Separate</b> → pull the organs apart to study each one<br>
+    • <b>Quiz</b> → name / find / mixed modes with scoring<br>
+    • <b>X-Ray / Cross-Section</b> → look inside<br>
+    • <b>${fem?'Egg Path':'Sperm Path'}</b> → animated route</div>`;
+}
+function renderInfoPanel(k){
+  const sys=SYSTEMS[sysOf(k)], i=sys.order.indexOf(k), n=sys.order.length;
+  panel.classList.toggle('fem', sysOf(k)==='female');
+  panel.innerHTML=`
+    <div class="p-name">${INFO[k].name}</div>
+    <div class="p-sub">${sysOf(k)==='male'?'♂ MALE':'♀ FEMALE'} · ${INFO[k].sub}</div>
+    <div class="p-fn">${INFO[k].fn}</div>
+    <div class="p-nav">
+      <button data-act="prev">◀ ${INFO[sys.order[(i-1+n)%n]].name}</button>
+      <span>${i+1} / ${n}</span>
+      <button data-act="next">${INFO[sys.order[(i+1)%n]].name} ▶</button>
+    </div>`;
+}
+let selectedKey=null;
+function select(k){
+  const sys=sysOf(k);
+  if(sys!==active) showSystem(sys,{silent:true});
+  selectedKey=k; renderInfoPanel(k); focusPart(k);
+}
+panel.addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const act=b.dataset.act;
+  if(act==='prev'||act==='next'){
+    const sys=SYSTEMS[sysOf(selectedKey)], i=sys.order.indexOf(selectedKey), n=sys.order.length;
+    select(sys.order[act==='prev'?(i-1+n)%n:(i+1)%n]);
+  }
+  else if(act==='qfind') startQuiz('find');
+  else if(act==='qname') startQuiz('name');
+  else if(act==='qmix')  startQuiz('mixed');
+  else if(act==='qcancel') showDefault();
+  else if(act==='qskip')  quizSkip();
+  else if(act==='qend')   endQuiz();
+  else if(act==='qopt')   quizAnswerName(b.dataset.key);
+  else if(act==='chip')   select(b.dataset.key);
+  else if(act==='qretry') startQuiz(quiz.lastMode, quiz.lastMissed);
+  else if(act==='qnew')   showQuizStart();
+});
+
+/* ================= focus ================= */
+let focusGoal=null, focusUntil=0;
+function focusPart(k){
+  focusGoal=PART_CENTER[k].clone().add(partOffset(k, expCur));
+  focusUntil=performance.now()+1400;
+}
+
+/* ================= picking ================= */
+let hoverKey=null;
+const ray=new THREE.Raycaster(), ptr=new THREE.Vector2();
+function pickList(e){
+  const r=renderer.domElement.getBoundingClientRect();
+  ptr.x=(e.clientX-r.left)/r.width*2-1;
+  ptr.y=-(e.clientY-r.top)/r.height*2+1;
+  ray.setFromCamera(ptr, camera);
+  const hits=ray.intersectObjects(SYSTEMS[active].pick, false);
+  const seen=new Set(), out=[];
+  for(const h of hits){ const k=h.object.userData.part;
+    if(!seen.has(k)){ seen.add(k); out.push(k); } }
+  return out;
+}
+renderer.domElement.addEventListener('pointermove', e=>{
+  const hits=pickList(e);
+  const k=quiz.active ? null : (hits.find(p=>!SKIP_SKIN.has(p))||hits[0]||null);
+  hoverKey=k;
+  renderer.domElement.style.cursor = quiz.active
+    ? (hits.length?'crosshair':'default') : (k?'pointer':'grab');
+});
+let downPos=null;
+renderer.domElement.addEventListener('pointerdown', e=> downPos=[e.clientX,e.clientY]);
+renderer.domElement.addEventListener('pointerup', e=>{
+  if(!downPos) return;
+  const moved=Math.hypot(e.clientX-downPos[0], e.clientY-downPos[1]);
+  downPos=null;
+  if(moved>6) return;
+  const hits=pickList(e);
+  if(quiz.active){ if(hits.length) quizFind(hits); return; }
+  const k=hits.find(p=>!SKIP_SKIN.has(p))||hits[0];
+  if(k) select(k);
+  else { selectedKey=null; showDefault(); }
+});
+
+/* ================= highlight pulses ================= */
+const pulses=[];
+let simT=0;
+function pulse(k, hex, dur=1.4){ pulses.push({key:k, c:new THREE.Color(hex), t0:simT, dur}); }
+function updateEmissives(t){
+  for(const k in partMeshes){
+    const m=partMeshes[k][0].material;
+    if(quiz.active && quiz.mode==='name' && !quiz.locked && quiz.order[quiz.idx]===k){
+      const w=0.35+0.3*Math.sin(t*6);
+      m.emissive.setRGB(0.9*w,0.75*w,0.2*w);
+      continue;
+    }
+    const lvl=(!quiz.active && k===selectedKey)?0.28:(!quiz.active && k===hoverKey)?0.14:0;
+    m.emissive.setScalar(lvl);
+  }
+  for(const p of pulses){
+    const u=(t-p.t0)/p.dur;
+    if(u<0||u>1) continue;
+    const w=Math.sin(Math.PI*u)*0.75;
+    const m=partMeshes[p.key][0].material;
+    m.emissive.r=Math.max(m.emissive.r,p.c.r*w);
+    m.emissive.g=Math.max(m.emissive.g,p.c.g*w);
+    m.emissive.b=Math.max(m.emissive.b,p.c.b*w);
+  }
+  for(let i=pulses.length-1;i>=0;i--)
+    if(t-pulses[i].t0>pulses[i].dur) pulses.splice(i,1);
+}
+
+/* ================= X-ray ================= */
+let xrayUser=false, xrayQuiz=false, xrayPath=false;
+const matDefaults=new Map();
+function setXRay(on){
+  for(const k in partMeshes) partMeshes[k].forEach(m=>{
+    const mm=m.material;
+    if(!matDefaults.has(mm)) matDefaults.set(mm,
+      {transparent:mm.transparent, opacity:mm.opacity, depthWrite:mm.depthWrite});
+    const d=matDefaults.get(mm);
+    if(on){ mm.transparent=true;
+      mm.opacity=SKIP_SKIN.has(k)?0.1:0.22; mm.depthWrite=false; }
+    else { mm.transparent=d.transparent; mm.opacity=d.opacity; mm.depthWrite=d.depthWrite; }
+  });
+}
+const btnXray=document.getElementById('btnXray');
+function applyXray(){
+  setXRay(xrayUser||xrayQuiz||xrayPath);
+  btnXray.classList.toggle('on', xrayUser||xrayQuiz||xrayPath);
+}
+btnXray.onclick=()=>{ xrayUser=!xrayUser; applyXray(); };
+
+/* ================= cross-section ================= */
+const clipPlane=new THREE.Plane(new THREE.Vector3(-1,0,0), 0.15);
+let cutOn=false;
+const cutbar=document.getElementById('cutbar'),
+      cutSlider=document.getElementById('cutSlider'),
+      cutVal=document.getElementById('cutVal'),
+      btnCut=document.getElementById('btnCut');
+CLIP_MATS.forEach(m=> m.userData.baseSide = m.side);
+function setCut(on){
+  cutOn=on; renderer.localClippingEnabled=on;
+  CLIP_MATS.forEach(m=>{
+    m.clippingPlanes = on ? [clipPlane] : null;
+    m.clipShadows = on;
+    m.side = on ? THREE.DoubleSide : (m.userData.baseSide || THREE.FrontSide);
+    m.needsUpdate = true;
+  });
+  cutbar.classList.toggle('on',on);
+  btnCut.classList.toggle('on',on);
+}
+btnCut.onclick=()=> setCut(!cutOn);
+document.getElementById('cutOff').onclick=()=> setCut(false);
+cutSlider.addEventListener('input', e=>{
+  clipPlane.constant=parseFloat(e.target.value);
+  cutVal.textContent=(+e.target.value).toFixed(2);
+});
+
+/* ================= path toggle ================= */
+const btnSperm=document.getElementById('btnSperm');
+function updatePathBtn(){
+  const fem=active==='female';
+  const on=fem ? (eggGroup&&eggGroup.visible) : (spermGroup&&spermGroup.visible);
+  btnSperm.textContent = fem ? (on?'Hide Egg Path':'Egg Path')
+                             : (on?'Hide Sperm Path':'Sperm Path');
+  btnSperm.classList.toggle('on', on);
+}
+function panelPath(kind){
+  panel.classList.toggle('fem', kind==='egg');
+  panel.innerHTML = kind==='sperm' ? `
+    <div class="p-name">🚩 Sperm Route</div>
+    <div class="p-sub">From production to exit — both testes</div>
+    <div class="p-fn"><b>Path:</b> Testis (made) → Epididymis (mature &amp; stored) →
+    Vas deferens → fluids from the <b>seminal vesicles, prostate &amp; bulbourethral
+    glands</b> join to form <b>semen</b> → Urethra → out the opening at the glans.</div>`
+  : `
+    <div class="p-name">🥚 Egg Route</div>
+    <div class="p-sub">From ovary to uterus — both ovaries</div>
+    <div class="p-fn"><b>Path:</b> Ovary (egg released at ovulation) →
+    Fimbriae sweep it into the <b>Fallopian tube</b> (fertilization happens here
+    if sperm are present) → Uterus → implants into the <b>endometrium</b>.<br>
+    <i>If unfertilized: the egg dissolves and the thickened lining is
+    shed — <b>menstruation</b>.</i></div>`;
+}
+btnSperm.onclick=()=>{
+  if(expTarget>0) setExplode(0);
+  if(active==='male'){
+    spermGroup.visible=!spermGroup.visible;
+    if(spermGroup.visible) panelPath('sperm'); else showDefault();
+    xrayPath=spermGroup.visible;
+  }else{
+    eggGroup.visible=!eggGroup.visible;
+    if(eggGroup.visible) panelPath('egg'); else showDefault();
+    xrayPath=eggGroup.visible;
+  }
+  applyXray(); updatePathBtn();
+};
+
+/* ================= sound ================= */
+let actx=null, muted=false;
+function tone(f,d,type='sine',v=0.09,delay=0){
+  if(muted) return;
+  try{
+    actx ||= new (window.AudioContext||window.webkitAudioContext)();
+    const t=actx.currentTime+delay;
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.type=type; o.frequency.value=f;
+    g.gain.setValueAtTime(v,t);
+    g.gain.exponentialRampToValueAtTime(0.001,t+d);
+    o.connect(g).connect(actx.destination);
+    o.start(t); o.stop(t+d);
+  }catch(e){}
+}
+const sndOk =()=>{ tone(660,.09); tone(980,.14,'sine',.09,.09); };
+const sndBad=()=>  tone(190,.25,'square',.05);
+const sndEnd=()=>[523,659,784].forEach((f,i)=>tone(f,.15,'sine',.08,i*.13));
+const btnSound=document.getElementById('btnSound');
+btnSound.onclick=()=>{ muted=!muted; btnSound.textContent=muted?'🔇':'🔊'; };
+
+/* ================= quiz ================= */
+const quiz={active:false, mode:'find', system:'male', order:[], idx:0, results:[],
+            locked:false, t0:0, prevLabels:true, lastMode:'find', lastMissed:[]};
+const fmtTime=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;
+const fb=(html,cls)=>{ const el=document.getElementById('qfb');
+  if(el){ el.innerHTML=html; el.className='q-fb '+cls; } };
+function dotsHtml(){
+  return '<div class="q-dots">'+quiz.order.map((k,i)=>{
+    const cls = i<quiz.idx ? (quiz.results[i]==='ok'?'ok':'bad')
+              : (i===quiz.idx?'cur':'');
+    return `<i class="${cls}" title="${INFO[k].name}"></i>`;
+  }).join('')+'</div>';
+}
+function showQuizStart(){
+  panel.classList.toggle('fem', active==='female');
+  panel.innerHTML=`
+    <div class="p-name">🎯 Quiz</div>
+    <div class="p-sub">${active==='male'?'♂ MALE':'♀ FEMALE'} · pick a mode</div>
+    <div class="q-opts">
+      <button data-act="qname"><b>Name mode</b><br>A part glows — pick its name</button>
+      <button data-act="qfind"><b>Find mode</b><br>I name a part — click it on the model</button>
+      <button data-act="qmix"><b>Mixed mode</b><br>Both systems · 24 questions</button>
+    </div>
+    <div class="q-actions"><button data-act="qcancel">Cancel</button></div>`;
+}
+function startQuiz(mode, keys){
+  quiz.active=true; quiz.mode=mode; quiz.locked=false;
+  quiz.system=active;
+  if(!keys) keys = mode==='mixed'
+    ? SYSTEMS.male.quizKeys.concat(SYSTEMS.female.quizKeys)
+    : SYSTEMS[active].quizKeys;
+  quiz.order=shuffle([...keys]); quiz.idx=0; quiz.results=[];
+  quiz.t0=performance.now();
+  quiz.prevLabels=labelsOn;
+  setLabels(false);
+  xrayQuiz=(mode==='name'); applyXray();
+  controls.autoRotate=false;
+  selectedKey=null; hoverKey=null;
+  renderQuestion();
+}
+function renderQuestion(){
+  if(quiz.idx>=quiz.order.length){ endQuiz(); return; }
+  const key=quiz.order[quiz.idx];
+  if(quiz.mode==='mixed'){ if(sysOf(key)!==active) showSystem(sysOf(key),{silent:true}); }
+  else if(active!==quiz.system){ showSystem(quiz.system,{silent:true}); }
+  if(quiz.mode==='find'||quiz.mode==='mixed'){
+    const inner=(SYSTEMS[quiz.system].inner.has(key))
+      ? '<div class="q-hint">💡 It sits inside/behind another part — click straight through the outer layer.</div>':'';
+    const label = quiz.mode==='mixed' ? 'Quiz · Mixed' : 'Quiz · Find';
+    panel.innerHTML=`
+      <div class="q-head"><span>${label}</span><span id="qtime">0:00</span></div>
+      <div class="q-big">Click the: <b>${INFO[key].name}</b></div>
+      ${inner}${dotsHtml()}
+      <div class="q-fb" id="qfb">&nbsp;</div>
+      <div class="q-actions">
+        <button data-act="qskip">Skip</button>
+        <button data-act="qend">End quiz</button>
+      </div>`;
+    marker.visible=false;
+  } else {
+    const opts=shuffle([key, ...sample(
+      (quiz.mode==='mixed'?SYSTEMS.male.quizKeys.concat(SYSTEMS.female.quizKeys)
+        :SYSTEMS[active].quizKeys).filter(k=>k!==key),3)]);
+    panel.innerHTML=`
+      <div class="q-head"><span>Quiz · Name</span><span id="qtime">0:00</span></div>
+      <div class="q-big">Which structure is <b>glowing ❓</b></div>
+      ${dotsHtml()}
+      <div class="q-opts">${opts.map(k=>
+        `<button data-act="qopt" data-key="${k}">${INFO[k].name}</button>`).join('')}</div>
+      <div class="q-fb" id="qfb">&nbsp;</div>
+      <div class="q-actions">
+        <button data-act="qskip">Skip</button>
+        <button data-act="qend">End quiz</button>
+      </div>`;
+    marker.visible=true;
+    marker.position.copy(PART_CENTER[key]).add(partOffset(key, expCur));
+    focusPart(key);
+  }
+}
+function nextQ(){ quiz.locked=false; quiz.idx++; renderQuestion(); }
+function resolveAnswer(correct, target, wrongKey){
+  if(correct){
+    quiz.results[quiz.idx]='ok';
+    fb('✔ Correct!','ok');
+    pulse(target,0x2ecc71,1.1); sndOk();
+    quiz.locked=true; setTimeout(nextQ, 900);
+  } else {
+    quiz.results[quiz.idx]='bad';
+    const wrong=wrongKey && INFO[wrongKey] ? INFO[wrongKey].name : 'empty space';
+    fb(`✘ That was <b>${wrong}</b> — the <b>${INFO[target].name}</b> is here →`,'bad');
+    if(wrongKey) pulse(wrongKey,0xe74c3c,1.1);
+    pulse(target,0x2ecc71,1.9);
+    focusPart(target); sndBad();
+    quiz.locked=true; setTimeout(nextQ, 2200);
+  }
+}
+function quizFind(hits){
+  if(quiz.locked) return;
+  const target=quiz.order[quiz.idx];
+  const first=hits.find(k=>!QUIZ_SKIP.has(k));
+  const inner=SYSTEMS[quiz.system].inner.has(target);
+  const correct=inner ? hits.includes(target) : first===target;
+  resolveAnswer(correct, target, first);
+}
+function quizAnswerName(chosen){
+  if(quiz.locked) return;
+  const target=quiz.order[quiz.idx];
+  resolveAnswer(chosen===target, target, chosen);
+}
+function quizSkip(){
+  if(quiz.locked) return;
+  const target=quiz.order[quiz.idx];
+  quiz.results[quiz.idx]='bad';
+  fb(`→ The <b>${INFO[target].name}</b> is here`,'');
+  pulse(target,0x2ecc71,1.5); focusPart(target);
+  quiz.locked=true; setTimeout(nextQ, 1500);
+}
+function endQuiz(){
+  quiz.active=false; quiz.locked=false;
+  marker.visible=false;
+  xrayQuiz=false; applyXray();
+  setLabels(quiz.prevLabels);
+  const n=quiz.order.length;
+  const ok=quiz.results.filter(r=>r==='ok').length;
+  const missed=quiz.order.filter((k,i)=>quiz.results[i]!=='ok');
+  quiz.lastMissed=missed; quiz.lastMode=quiz.mode;
+  const secs=Math.round((performance.now()-quiz.t0)/1000);
+  panel.innerHTML=`
+    <div class="p-name">📋 Results</div>
+    <div class="p-sub">${ok} / ${n} correct · ${Math.round(ok/n*100)}% · ${fmtTime(secs)}</div>
+    <div class="q-dots">${quiz.order.map((k,i)=>{
+      const cls=quiz.results[i]==='ok'?'ok':quiz.results[i]?'bad':'';
+      return `<i class="${cls}" title="${INFO[k].name}"></i>`;}).join('')}</div>
+    ${missed.length
+      ? `<div class="p-fn" style="margin-top:8px"><b>Review:</b> ${
+          missed.map(k=>`<button class="chip" data-act="chip" data-key="${k}">${INFO[k].name}</button>`).join(' ')}</div>`
+      : '<div class="q-fb ok">Perfect! 🎉</div>'}
+    <div class="q-actions">
+      ${missed.length?'<button data-act="qretry">Retry missed</button>':''}
+      <button data-act="qnew">New quiz</button>
+      <button data-act="qcancel">Done</button>
+    </div>`;
+  sndEnd();
+}
+const btnQuiz=document.getElementById('btnQuiz');
+btnQuiz.onclick=()=>{ quiz.active ? endQuiz() : showQuizStart(); };
+
+/* ================= labels toggle ================= */
+const btnLabels=document.getElementById('btnLabels');
+function applyLabelsVis(){
+  ['male','female'].forEach(n=>{
+    const s=SYSTEMS[n], vis=(n===active)&&labelsOn;
+    s.labelObjs.forEach(o=> o.visible=vis);
+    s.labelLines.forEach(l=> l.visible=vis);
+  });
+}
+function setLabels(on){
+  labelsOn=on;
+  applyLabelsVis();
+  btnLabels.textContent=on?'Hide Labels':'Show Labels';
+  btnLabels.classList.toggle('on', !on);
+}
+btnLabels.onclick=()=> setLabels(!labelsOn);
+
+/* ================= system switching + menu ================= */
+const menu=document.getElementById('menu');
+function showMenu(){
+  if(quiz.active) endQuiz();
+  menu.classList.remove('hidden');
+  controls.autoRotate=true;
+}
+function hideMenu(){ menu.classList.add('hidden'); }
+function showSystem(name, {silent=false}={}){
+  if(!silent && quiz.active) endQuiz();
+  active=name;
+  SYSTEMS.male.group.visible = name==='male';
+  SYSTEMS.female.group.visible = name==='female';
+  applyLabelsVis();
+  spermGroup.visible=false; eggGroup.visible=false; xrayPath=false;
+  applyXray(); updatePathBtn();
+  setExplode(0);
+  document.getElementById('sysSub').textContent = name==='male'
+    ? '♂ Male — drag to rotate · scroll to zoom · click parts'
+    : '♀ Female — drag to rotate · scroll to zoom · click parts';
+  hideMenu();
+  if(!silent){
+    const sys=SYSTEMS[name];
+    camera.position.copy(sys.camPos);
+    controls.target.copy(sys.camTarget);
+    focusGoal=null; selectedKey=null;
+    controls.autoRotate=true;
+    showDefault();
+  }
+}
+document.querySelectorAll('#menu .card').forEach(b=>{
+  b.addEventListener('click', ()=> showSystem(b.dataset.sys));
+});
+document.getElementById('menuClose').onclick=()=> showSystem(active);
+const btnMenu=document.getElementById('btnMenu');
+btnMenu.onclick=showMenu;
+const btnSwap=document.getElementById('btnSwap');
+btnSwap.onclick=()=> showSystem(active==='male'?'female':'male');
+
+/* ================= reset + keyboard ================= */
+document.getElementById('btnReset').onclick=()=>{
+  const sys=SYSTEMS[active];
+  camera.position.copy(sys.camPos);
+  controls.target.copy(sys.camTarget);
+  focusGoal=null;
+  if(expTarget>0){
+    const d=camera.position.distanceTo(controls.target);
+    if(d<10.5) camera.position.sub(controls.target).setLength(10.5).add(controls.target);
+  }
+  controls.update();
+};
+addEventListener('keydown', e=>{
+  if(e.repeat) return;
+  const k=e.key.toLowerCase();
+  if(k==='1') showSystem('male');
+  else if(k==='2') showSystem('female');
+  else if(k==='b'||e.key==='Escape'){
+    menu.classList.contains('hidden') ? showMenu() : showSystem(active);
+  }
+  else if(k==='l') btnLabels.click();
+  else if(k==='x') btnXray.click();
+  else if(k==='s') btnSperm.click();
+  else if(k==='c') btnCut.click();
+  else if(k==='e') setExplode(expTarget>0?0:0.6);
+  else if(k==='q') btnQuiz.click();
+  else if(k==='r') document.getElementById('btnReset').click();
+  else if(k==='m') btnSound.click();
+});
+
+/* ================= loop ================= */
+const clock=new THREE.Clock();
+(function animate(){
+  requestAnimationFrame(animate);
+  const t=clock.getElapsedTime(); simT=t;
+  controls.update();
+  if(focusGoal && performance.now()<focusUntil)
+    controls.target.lerp(focusGoal, 0.08);
+  if(Math.abs(expCur-expTarget)>0.001){
+    expCur+=(expTarget-expCur)*0.12;
+    if(Math.abs(expCur-expTarget)<0.001) expCur=expTarget;
+    applyExplode(expCur);
+  }
+  updateEmissives(t);
+  if(spermGroup.visible){ updateSperm(t); guideMatSperm.opacity=0.22+0.1*Math.sin(t*3); }
+  if(eggGroup.visible){ updateEgg(t); guideMatEgg.opacity=0.25+0.12*Math.sin(t*3); }
+  if(quiz.active){
+    const el=document.getElementById('qtime');
+    if(el) el.textContent=fmtTime((performance.now()-quiz.t0)/1000|0);
+  }
+  renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
+})();
+
+addEventListener('resize', ()=>{
+  camera.aspect=innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  labelRenderer.setSize(innerWidth, innerHeight);
+});
+
+/* ================= init ================= */
+SYSTEMS.female.group.visible=false;
+applyLabelsVis();
+camera.position.copy(SYSTEMS.male.camPos);
+controls.target.copy(SYSTEMS.male.camTarget);
+document.getElementById('sysSub').textContent=
+  '♂ Male — drag to rotate · scroll to zoom · click parts';
+showDefault();
+</script>
+</body>
+</html>
