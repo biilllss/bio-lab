@@ -11,6 +11,7 @@ import { skinTopic } from './skin'
 import { plantCellTopic } from './plantcell'
 import { toothTopic } from './tooth'
 import { leafTopic } from './leaf'
+import { tongueTopic } from './tongue'
 import type { SystemDef } from '../types'
 
 /**
@@ -42,6 +43,7 @@ export const TOPICS: TopicDef[] = [
   plantCellTopic,
   toothTopic,
   leafTopic,
+  tongueTopic,
 ]
 
 export function getTopic(topicId: string): TopicDef | undefined {

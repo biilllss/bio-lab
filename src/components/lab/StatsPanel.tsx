@@ -165,7 +165,7 @@ export default function StatsPanel(p: Props) {
       avgPct: avg5,
       mastered: allDone,
       totalParts: allTotal,
-      topics: topics.map(({ t, done, total }) => ({ emoji: t.emoji, title: t.title, done, total })),
+      topics: topics.map(({ t, done, total }) => ({ emoji: t.emoji, title: t.title, done, total, accent: t.accent })),
       accent: p.accent,
       filename: 'bio-lab-study-stats.png',
     })

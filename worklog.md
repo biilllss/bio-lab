@@ -496,3 +496,43 @@ Next-phase recommendations:
 - Per-topic accent colors in the stats-card topic bars; optionally a mini heatmap on the stats card.
 - SM-2 style scheduler once per-part review counts grow; cloud sync via Prisma when accounts exist.
 - Consider worklog rotation (start worklog-2.md) — file is 460+ lines.
+
+---
+Task ID: dl-1
+Agent: Z.ai Code (main)
+Task: User-reported download button failure ("failed to fetch from site") — package the full project as a zip in download/, excluding node_modules and build output, and provide a reliable site-served fallback.
+
+Work Log:
+- Inspected project sizes: node_modules 1.2G, .next 125M, .git 84M, tool-results 81M, skills 61M, actual source (src) only ~960K.
+- Created download/my-project-2026-09-21.zip via `zip -r` with exclusions: node_modules/*, .next/*, dist/*, .git/*, tool-results/*, skills/*, .zscripts/*, .env (secrets), dev.log, *.zip (no recursion).
+- Verified with `unzip -t` (ZIP OK): 168 files, ~1.1MB uncompressed, 389KB compressed. Contains src, prisma, db, public, tests, examples, mini-services, all configs (package.json, tsconfig, tailwind, eslint, Caddyfile), worklog.md, DEPLOY.md.
+- Fallback for the broken download button: copied the zip to public/ so it is served directly by Next at /my-project-2026-09-21.zip — verified via curl: HTTP 200, Content-Type application/zip.
+
+Stage Summary:
+- Deliverable 1 (as requested): /home/z/my-project/download/my-project-2026-09-21.zip (389 KB, 168 files).
+- Deliverable 2 (fallback): same zip served live at URL path /my-project-2026-09-21.zip (200 OK) — usable if the preview download button fails again.
+- Excluded from the zip on purpose: node_modules, .next, dist, .git (84M history), tool-results, skills (sandbox artifacts), .env (contains secrets — do NOT ship publicly), dev.log. Restore deps with `bun install`.
+
+Unresolved issues / risks:
+- .env excluded from the zip for security; user must re-create it if deploying outside the sandbox.
+- .git excluded to keep the zip small — git history only lives in the workspace; push to GitHub before deleting anything.
+- In-app download buttons (JSON progress / PNG share cards) are client-side Canvas downloads, unrelated to this failure; no code change was needed.
+
+---
+Task ID: dl-2
+Agent: Z.ai Code (main)
+Task: Provide .env.example template + exact post-install setup commands + confirm whether real secrets are needed for local dev (follow-up to project zip packaging).
+
+Work Log:
+- Audited env usage: .env contains exactly ONE var — DATABASE_URL (SQLite file path, not a secret). src/ only reads process.env.NODE_ENV (lib/db.ts); next.config.ts reads none; app does NOT import z-ai-web-dev-sdk → zero API keys needed.
+- Created .env.example at project root with DATABASE_URL=file:../db/custom.db and documented the Prisma gotcha (relative paths resolve against prisma/schema.prisma, not cwd).
+- Live-verified the relative path: ran `DATABASE_URL="file:../db/envpath-verify.db" bunx prisma db push --skip-generate` → db created at project-root db/ as expected; test file removed afterwards.
+- Fixed .gitignore: `.env*` was hiding the template — added `!.env.example` exception.
+- Updated both zips (download/ + public/ copies of my-project-2026-09-21.zip, same filename, 389K) to include .env.example + fixed .gitignore; re-verified site serving: HTTP 200.
+
+Stage Summary:
+- Local dev needs NO secrets: the only env var is a local SQLite path; no seed script exists (prisma/ has schema only); `bun run db:push` creates a fresh empty DB from schema.
+- Setup recipe: bun install → cp .env.example .env → bun run db:generate → bun run db:push → bun run dev.
+
+Unresolved issues / risks:
+- None new. Note: `bun run db:reset` would fail without a migrations folder — db:push is the correct fresh-start path for this project.

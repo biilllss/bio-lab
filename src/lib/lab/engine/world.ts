@@ -146,6 +146,10 @@ export class LabWorld {
   constructor(container: HTMLElement, topics: TopicDef[], cb: WorldCallbacks) {
     this.container = container
     this.cb = cb
+    /* dev debug hook: inspect live scene state from the console / QA scripts */
+    if (process.env.NODE_ENV !== 'production') {
+      (window as unknown as { __bioWorld?: World }).__bioWorld = this
+    }
 
     /* renderer / scene ─────────────────────────────────────────────────── */
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
@@ -764,6 +768,17 @@ export class LabWorld {
 
   private animate = () => {
     this.raf = requestAnimationFrame(this.animate)
+    try {
+      this.frame()
+    } catch (err) {
+      /* a throwing frame must not kill the render loop — log & keep going */
+      console.error('[bio-lab] frame error:', err)
+      const w = window as unknown as { __bioCrash?: string }
+      w.__bioCrash = String((err as Error)?.stack ?? err)
+    }
+  }
+
+  private frame() {
     const t = (performance.now() - this.t0) / 1000
     this.simT = t
     this.controls.update()

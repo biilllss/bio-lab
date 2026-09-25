@@ -247,8 +247,8 @@ export interface StatsCardData {
   avgPct: number
   mastered: number
   totalParts: number
-  /** per-topic mastery roll-up for the bar breakdown */
-  topics: { emoji: string; title: string; done: number; total: number }[]
+  /** per-topic mastery roll-up for the bar breakdown (accent = topic color) */
+  topics: { emoji: string; title: string; done: number; total: number; accent?: string }[]
   accent?: string
   filename?: string
 }
@@ -360,8 +360,12 @@ export function downloadStatsCard(data: StatsCardData): void {
     ctx.fill()
     const frac = t.total ? t.done / t.total : 0
     if (frac > 0) {
+      const bar = ctx.createLinearGradient(bx, 0, bx + bw * frac, 0)
+      const tAccent = t.accent ?? accent
+      bar.addColorStop(0, `${tAccent}aa`)
+      bar.addColorStop(1, tAccent)
       rr(ctx, bx, y + rowH * 0.32, Math.max(7, bw * frac), 7, 3.5)
-      ctx.fillStyle = accent
+      ctx.fillStyle = bar
       ctx.fill()
     }
     ctx.textAlign = 'right'

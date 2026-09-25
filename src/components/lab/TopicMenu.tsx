@@ -99,6 +99,7 @@ export default function TopicMenu({ open, topics, activeTopicId, mastery, onOpen
           {filtered.map(t => {
             const m = masteredIn(t)
             const due = dueIn(t)
+            const num = topics.findIndex(x => x.id === t.id) + 1
             return (
               <div
                 key={t.id}
@@ -110,6 +111,7 @@ export default function TopicMenu({ open, topics, activeTopicId, mastery, onOpen
                 onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onOpen(t) }}
               >
                 <CardPreview topic={t} />
+                <span className="bio-card-num" aria-hidden>{String(num).padStart(2, '0')}</span>
                 <div className="bio-card-ico" aria-hidden>{t.emoji}</div>
                 <div className="bio-card-body">
                   <h2>

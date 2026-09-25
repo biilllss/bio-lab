@@ -821,6 +821,28 @@
     0 4px 18px -8px rgba(0, 0, 0, 0.5);
 }
 
+/* ── menu card: ordinal index chip (topic number in the lab) ── */
+.bio-card-num {
+  position: absolute; top: 10px; right: 13px; z-index: 1;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 1.5px;
+  line-height: 1; color: var(--card-accent, #5aa2ff);
+  opacity: 0.6; font-variant-numeric: tabular-nums;
+  transition: opacity 0.2s;
+}
+.bio-card:hover .bio-card-num,
+.bio-card.active .bio-card-num,
+.bio-card:focus-visible .bio-card-num { opacity: 1; }
+
+/* ── menu card: currently-open topic status dot ── */
+.bio-card.active::before {
+  content: '';
+  position: absolute; top: 14px; left: 14px; z-index: 1;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--card-accent, #5aa2ff);
+  box-shadow: 0 0 10px 0 var(--card-accent, #5aa2ff);
+  animation: bio-due-dot 1.6s ease-in-out infinite;
+}
+
 /* ── quiz results: 📸 Card button (accent-tinted) ── */
 .bio-q-actions button.bio-card-btn {
   border-color: color-mix(in srgb, var(--panel-accent, #5aa2ff) 55%, transparent);

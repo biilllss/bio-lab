@@ -1,6 +1,12 @@
 # 🚀 Deploying the Biology 3D Study Lab to Vercel
 
-This project is a **standard Next.js 16 (App Router) app** — it deploys to Vercel with **zero configuration**. There is no database, no server-side secrets, and no special infrastructure required; everything runs client-side (WebGL + WebAudio).
+This project is a **standard Next.js 16 (App Router) app** — it deploys to Vercel with **zero configuration**. The biology lab itself runs fully client-side (WebGL + WebAudio, progress in localStorage).
+
+**Current live deployment:** https://bio-lab-beryl.vercel.app — auto-deploys from the GitHub repo `billlls/bio-lab` on every push to `main`.
+
+**Connected services (managed in the Vercel project settings):**
+- **Neon PostgreSQL** — `DATABASE_URL` lives in Vercel → Settings → Environment Variables (and in your local `.env`, which is git-ignored). The lab features don't touch it yet; the Prisma schema (`postgresql` provider) is ready for future server features. Do **not** switch the provider back to SQLite.
+- **Upstash KV** — provisioned in the Vercel project, currently unused. Ignore it.
 
 ---
 
@@ -57,9 +63,14 @@ vercel --prod   # promotes to production
 ## Local development
 
 ```bash
-npm install       # or: bun install
-npm run dev       # http://localhost:3000
+npm install                 # or: bun install
+cp .env.example .env        # then paste your own Neon DATABASE_URL into it
+npm run db:generate         # prisma generate
+npm run db:push             # create/sync tables in your Neon database
+npm run dev                 # http://localhost:3000
 ```
+
+> No secrets are required to *browse and study*: the lab runs client-side, so an unreachable `DATABASE_URL` won't stop the app in dev. It only matters for future server features.
 
 ---
 
